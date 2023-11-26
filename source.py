@@ -175,7 +175,7 @@ income_grouping_data = pd.read_csv('Data/GBD/revised_world_bank_data.csv')
 gbd_cd_data = pd.read_csv('Data/GBD/gbd_communicable_diseases.csv')
 
 
-# ## Exploratory Data Analysis (EDA)
+# ## Exploratory Data Analysis (EDA) & Visualizations
 
 # My goal is to breakdown how income correlates with communicable disease's impact one different countries. I first want to take a look at the income datasets to set a base to go off of.
 
@@ -990,6 +990,95 @@ plt.show()
 # - Have you received any feedback? - I have not received any feedback or had peer reviews so far. 
 # - What changes have you made to your project based on this feedback? - None as of now.
 
+# ## Machine Learning (Regression / Classification)
+
+# ### EDA
+
+# As mentioned earlier, I will mainly be focusing on the Global Burden of Disease datasets taken from a study done in 2019. I plan to utlize these datasets and focus mainly on the DALYs information and the income grouping information. 
+# 
+# Reminder:
+# One DALY represents the loss of the equivalent of one year of full health. DALYs for a disease or health condition are the sum of the years of life lost to due to premature mortality (YLLs) and the years lived with a disability (YLDs) due to prevalent cases of the disease or health condition in a population.
+
+# The dataset provides 5 input variables that are a mixture of continuous/discrete numerical values and ordinal/nominal categories. The complete list of variables is as follows:
+# 
+# Main Dataset - gbd_communicable_diseases.csv
+# 
+# - **Entity**: Nominal Categorical data (Countries and territories).
+# - **Code**: Nominal Categorical data (Country codes for mapping).
+# - **Year**: Discrete Numerical data.
+# - **DALYs (Disability-Adjusted Life Years)**: Continuous Numerical data.
+# - **Income Group**: Ordinal Categorical Data (Low income, Lower middle income, Upper middle income, High income). 
+# 
+# Secondary Dataset (May use?) - gbd_countries.csv
+# 
+# - **measure**: Nominal Categorical data (DALYs (Disability-Adjusted Life Years)).
+# - **location**: Nominal Categorical data (Countries and territories).
+# - **cause**: Nominal Categorical data (Communication Diseases).
+# - **year**: Discrete Numerical data.
+# - **val**: Continuous Numerical data (Total amount DAYLs). 
+# - **upper**: Continuous Numerical data (Upper bound DAYLs).
+# - **lower**: Continuous Numerical data (Lower bound DAYLs).
+# - **income**: Ordinal Categorical Data (Low income, Lower middle income, Upper middle income, High income). 
+# 
+# 
+# The data has already been merged and cleaned. Rows with missing values have been dropped or adjusted during the merge. 
+# 
+# The objective is to ultimately be able to select a country and predict whether or not it is heavily impacted by communicable diseases based on its income group. 
+
+# ### Prepare
+
+# In[905]:
+
+
+gbd_cd_data.head()
+
+
+# In[906]:
+
+
+gbd_cd_data.isnull().sum()
+
+
+# I dropped the NaN values previously where there was no area code for particular countries using 
+# 
+# gbd_cd_data = gbd_cd_data.dropna(subset=['Code', 'Income Group'])
+
+# In[909]:
+
+
+display(gbd_cd_data.value_counts('Income Group'))
+
+
+# In[911]:
+
+
+display(gbd_cd_data['Income Group'].value_counts().plot(kind='bar', xlabel='Category', ylabel='Count', rot=90))
+
+
+# I have other visualizations for the data at the end of the checkpoint 2 section. Now I am going to need to split the data
+
+# In[912]:
+
+
+train_set, test_set = train_test_split(gbd_cd_data, test_size = 0.2, random_state = 50)
+
+
+# In[913]:
+
+
+gbd_cd_data_X = train_set.drop('Income Group', axis=1)
+gbd_cd_data_y = train_set['Income Group'].copy()
+
+
+# In[915]:
+
+
+display(gbd_cd_data_X.head())
+display(gbd_cd_data_y.head())
+
+
+# ### Process
+
 # ## Resources and References
 # *What resources and references have you used for this project?*
 # 📝 <!-- Answer Below -->
@@ -1007,7 +1096,7 @@ plt.show()
 # 
 # - ChatGPT
 
-# In[903]:
+# In[904]:
 
 
 # ⚠️ Make sure you run this cell at the end of your notebook before every submission!

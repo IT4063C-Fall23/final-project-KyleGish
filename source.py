@@ -272,6 +272,244 @@ plt.show()
 
 # This is a geomap of the income grouping of each country. This project will explore how income impacts human life. Hopefully we will begin to see patterns emerge. Maybe countries indicated as low or lower middle income having a correlation with greater negative impact to human life. As we explore the diseases by country, we will be able to relate back to the income information throughout the project.
 
+# ### Cholera Information
+
+# The two cholera datasets include different values for cases, deaths, and fatality rates. Instead of having them in two different datasets, I want to combine them. 
+
+# In[831]:
+
+
+display(cholera_cases.head(5))
+display(cholera_deaths.head(5))
+
+
+# In[832]:
+
+
+cholera_data = pd.merge(cholera_cases, cholera_deaths, how='left', on=['Countries, territories and areas','Year'])
+
+cholera_data.head()
+
+
+# In[833]:
+
+
+cholera_data.shape
+
+
+# In[834]:
+
+
+cholera_data.isnull().sum()
+
+
+# In[835]:
+
+
+cholera_data.info()
+
+
+# In[836]:
+
+
+cholera_data.describe()
+
+
+# In[837]:
+
+
+#To convert the object types to int64 after merging
+cholera_data['Number of reported deaths from cholera'].replace('Unknown', np.nan, inplace=True)
+cholera_data['Number of reported deaths from cholera'] = cholera_data['Number of reported deaths from cholera'].astype(float).astype('Int64')
+
+
+# In[838]:
+
+
+cholera_data['Cholera case fatality rate'] = cholera_data['Number of reported deaths from cholera'] / cholera_data['Number of reported cases of cholera']
+
+
+# In[839]:
+
+
+cholera_data.info()
+
+
+# In[840]:
+
+
+cholera_data.head()
+
+
+# In[841]:
+
+
+cholera_data.describe()
+
+
+# In[842]:
+
+
+cholera_data.isnull().sum()
+
+
+# In[843]:
+
+
+cholera_data_missing = cholera_data[cholera_data.isnull().any(axis=1)]
+print(cholera_data_missing)
+
+
+# Since much of the missing data is just missing records from different years, I believe the best case would be to drop the rows that are not consistent across the data to help provide a better picture of the data. Most of the data is still available and I do not believe that dropping the rows will skew the data especially since we could look at years where all of the data is present across the graphs. 
+
+# In[844]:
+
+
+cholera_data_prepared = cholera_data.dropna()
+
+
+# In[845]:
+
+
+cholera_data_prepared.isnull().sum()
+
+
+# In[846]:
+
+
+cholera_data_aggregated = cholera_data_prepared.groupby('Countries, territories and areas').agg({'Number of reported cases of cholera': 'mean','Number of reported deaths from cholera': 'mean'}).reset_index()
+cholera_data_filtered = cholera_data_aggregated[(cholera_data_aggregated['Number of reported cases of cholera'] != 0) & (cholera_data_aggregated['Number of reported deaths from cholera'] != 0)]
+
+plt.figure(figsize=(24, 12))
+
+
+sns.barplot(x='Countries, territories and areas', y='Number of reported cases of cholera', data=cholera_data_filtered, label='Reported Cases', color='cyan')
+sns.barplot(x='Countries, territories and areas', y='Number of reported deaths from cholera', data=cholera_data_filtered, label='Reported Deaths', color='red')
+plt.xticks(rotation=90)
+plt.xlabel('Countries')
+plt.ylabel('Counts')
+plt.title('Total Reported Cases vs Deaths by Country')
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+
+# In[847]:
+
+
+cholera_fatality_rate = cholera_data_prepared.groupby('Countries, territories and areas')['Cholera case fatality rate'].mean().reset_index()
+
+plt.figure(figsize=(24, 12))
+sns.barplot(x='Countries, territories and areas', y='Cholera case fatality rate', data=cholera_fatality_rate)
+plt.xticks(rotation=90)
+plt.xlabel('Countries')
+plt.ylabel('Cholera Case Fatality Rate')
+plt.title('Average Cholera Case Fatality Rate by Country')
+plt.tight_layout()
+plt.show()
+
+
+# These two graphs, while a bit crowded, do provide a lot of information. We see the two big outliers in graph one with Haiti and Peru having a large number of cases of Cholera. However, we do not see that translate to fatality rate. The second graph has Italy and Oman as the two outliers but they were not outliers on the first graph. It seems some of the data is skewed which may indicate some of the rates are off.
+
+# In[848]:
+
+
+cholera_rate_outliers = cholera_data_prepared[cholera_data_prepared['Cholera case fatality rate'] > 1.0]
+print(cholera_rate_outliers)
+
+
+# In[849]:
+
+
+cholera_data_prepared.drop(index=1093, inplace=True)
+
+
+# In[850]:
+
+
+cholera_rate_outliers = cholera_data_prepared[cholera_data_prepared['Cholera case fatality rate'] > 1.0]
+print(cholera_rate_outliers)
+
+
+# In[851]:
+
+
+cholera_fatality_rate = cholera_data_prepared.groupby('Countries, territories and areas')['Cholera case fatality rate'].mean().reset_index()
+
+plt.figure(figsize=(24, 12))
+sns.barplot(x='Countries, territories and areas', y='Cholera case fatality rate', data=cholera_fatality_rate)
+plt.xticks(rotation=90)
+plt.xlabel('Countries')
+plt.ylabel('Cholera Case Fatality Rate')
+plt.title('Average Cholera Case Fatality Rate by Country')
+plt.tight_layout()
+plt.show()
+
+
+# Italy is no longer visualized on the graph
+
+# In[852]:
+
+
+cholera_rate_sort = cholera_fatality_rate.sort_values(by='Cholera case fatality rate', ascending=False)
+cholera_highest_fatality_rate = cholera_rate_sort.nlargest(10, 'Cholera case fatality rate')
+
+plt.figure(figsize=(24, 12))
+sns.barplot(x='Countries, territories and areas', y='Cholera case fatality rate', data=cholera_highest_fatality_rate)
+plt.xticks(rotation=90)
+plt.xlabel('Countries')
+plt.ylabel('Cholera Case Fatality Rate')
+plt.title('Highest Fatality Rates')
+plt.tight_layout()
+plt.show()
+
+
+# I wanted to see the top countries with the highest fatality rates and then will see how they line up with the income groupings.
+
+# In[853]:
+
+
+countries_check = ['Oman', 'Bangladesh', 'Czechia', 'Myanmar', 'Cambodia', 'India', 'Mali', 'Djibouti', 'Zambia', 'Lao PDR']
+
+for country in countries_check:
+    country_rate_check = income_cat[income_cat['Economy'] == country][['Economy', 'IncomeGroup']]
+    print(country_rate_check)
+
+
+# In[854]:
+
+
+cholera_highest_fatality_rate = cholera_rate_sort.nlargest(62, 'Cholera case fatality rate')
+
+highest_rates = cholera_highest_fatality_rate['Countries, territories and areas'].tolist()
+
+filtered_countries = income_cat[income_cat['Economy'].isin(highest_rates)][['Economy', 'IncomeGroup']]
+
+income_group_count = filtered_countries['IncomeGroup'].value_counts()
+
+print(income_group_count)
+
+
+# In[855]:
+
+
+#Overall Income Categories
+display(income_cat['IncomeGroup'].value_counts().plot(kind='bar', xlabel='IncomeGroup', ylabel='Count', rot=-45))
+
+
+# This is the total count of income groups included in the income_cat dataset
+
+# In[856]:
+
+
+display(income_group_count.plot(kind='bar', xlabel='IncomeGroup', ylabel='Count', rot=-45))
+
+
+# There are some missing values due to the differences in the dataset with some countries not being listed between the two datasets. However, we can see from the original IncomeGroup graph compared to the one revised based off of the fatality rates that there is a significance that the fatality rate plays on the income grouping. 
+# 
+# The original income group has 63.3% in the Upper middle income and High income categories.
+# The top 50 country matches between fatality rate and income_cat has only 34% in the Upper middle income and High income categories. 
+
 # ## Resources and References
 # *What resources and references have you used for this project?*
 # 📝 <!-- Answer Below -->
@@ -281,7 +519,7 @@ plt.show()
 # - https://www.healthdata.org/
 # - https://ourworldindata.org/burden-of-disease
 
-# In[818]:
+# In[830]:
 
 
 # ⚠️ Make sure you run this cell at the end of your notebook before every submission!

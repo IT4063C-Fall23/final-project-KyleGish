@@ -89,7 +89,7 @@
 
 # ## Exploratory Data Analysis and Visualization
 
-# In[813]:
+# In[1112]:
 
 
 import sys
@@ -131,6 +131,12 @@ from sklearn.ensemble import (
   GradientBoostingClassifier,
   BaggingClassifier
 )
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+from sklearn.metrics import classification_report
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import roc_auc_score
+from sklearn.metrics import ConfusionMatrixDisplay
 
 import pickle
 
@@ -992,6 +998,37 @@ plt.show()
 
 # ## Machine Learning (Regression / Classification)
 
+# ### Checkpoint 3 Prep
+# 
+# 
+# #### Machine Learning Plan
+# 
+# - What type of machine learning model are you planning to use? - I am unsure. I want to test the different models and see which ones work well and which ones dont.
+#    
+# - What are the challenges have you identified/are you anticipating in building your machine learning model? - I am working on using a numerical value to predict a categorical value. I may try and swap it around but I want to look at the correlation between DAYLs and Income grouping. Because the Income groups may be uneven in the training and test set, I also should stratify the data to help insure that it doesn't pull too much from one income grouping for the data.
+# 
+# - How are you planning to address these challenges? - I will need to handle the categorical data and go from there. I don't need to overcomplicate things especially since I will be working with a relatively simple dataset. I feel that because the dataset already has a relatively high correlation between the values, it will be pretty accurate in the machine learning model to detect. 
+# 
+# 
+# #### Machine Learning Implementation Process
+# 
+# (Ask, Prepare, Process, Analyze, Evaluate, Share)
+# 
+# 
+# - I will need to ensure that the datasets that I will be working with are clean and do not have missing or outlier data. I am pretty confident from checkpoint 2 that everything looks good.
+# 
+# - I will need to split the dataset into training and test sets.
+# 
+# - I will need to clean the data using data imputation, scaling/normalization, handling of categorical data. 
+# 
+# - I then need to test that data using multiple algorithms / models to evaluate and chose. 
+# 
+# 
+# #### Prior Feedback and updates
+# 
+# - Have you received any feedback? - I have not received any feedback or had peer reviews so far. 
+# - What changes have you made to your project based on this feedback? - None as of now.
+
 # ### EDA
 
 # As mentioned earlier, I will mainly be focusing on the Global Burden of Disease datasets taken from a study done in 2019. I plan to utlize these datasets and focus mainly on the DALYs information and the income grouping information. 
@@ -1027,29 +1064,51 @@ plt.show()
 
 # ### Prepare
 
-# In[905]:
+# In[990]:
+
+
+gbd_cd_data = pd.read_csv('Data/GBD/gbd_communicable_diseases.csv')
+
+
+# In[991]:
 
 
 gbd_cd_data.head()
 
 
-# In[906]:
+# In[992]:
+
+
+gbd_cd_data.info()
+
+
+# In[993]:
 
 
 gbd_cd_data.isnull().sum()
 
 
 # I dropped the NaN values previously where there was no area code for particular countries using 
-# 
-# gbd_cd_data = gbd_cd_data.dropna(subset=['Code', 'Income Group'])
 
-# In[909]:
+# In[994]:
+
+
+gbd_cd_data = gbd_cd_data.dropna(subset=['Code', 'Income Group'])
+
+
+# In[995]:
+
+
+gbd_cd_data.isnull().sum()
+
+
+# In[996]:
 
 
 display(gbd_cd_data.value_counts('Income Group'))
 
 
-# In[911]:
+# In[997]:
 
 
 display(gbd_cd_data['Income Group'].value_counts().plot(kind='bar', xlabel='Category', ylabel='Count', rot=90))
@@ -1057,20 +1116,22 @@ display(gbd_cd_data['Income Group'].value_counts().plot(kind='bar', xlabel='Cate
 
 # I have other visualizations for the data at the end of the checkpoint 2 section. Now I am going to need to split the data
 
-# In[912]:
+# ### Prepare
+
+# In[1094]:
 
 
-train_set, test_set = train_test_split(gbd_cd_data, test_size = 0.2, random_state = 50)
+train_set, test_set = train_test_split(gbd_cd_data, test_size=0.2, random_state=50, stratify=gbd_cd_data['Income Group'])
 
 
-# In[913]:
+# In[1095]:
 
 
 gbd_cd_data_X = train_set.drop('Income Group', axis=1)
 gbd_cd_data_y = train_set['Income Group'].copy()
 
 
-# In[915]:
+# In[1096]:
 
 
 display(gbd_cd_data_X.head())
@@ -1078,6 +1139,143 @@ display(gbd_cd_data_y.head())
 
 
 # ### Process
+
+# In[1102]:
+
+
+num_features = ['Year','DALYs (Disability-Adjusted Life Years)']
+cat_features = ['Entity','Code']
+
+num_pipeline = Pipeline([
+    ('imputer', SimpleImputer(strategy='mean')),
+    ('standard', StandardScaler())
+])
+
+cat_pipeline = Pipeline([
+    ('imputer', SimpleImputer(strategy='most_frequent')),
+    ('onehot', OneHotEncoder())
+])
+
+full_pipeline = ColumnTransformer([
+  ('num', num_pipeline, num_features),
+  ('cat', cat_pipeline, cat_features)
+])
+
+
+# In[1103]:
+
+
+gbd_cd_data_X_prepared = full_pipeline.fit_transform(gbd_cd_data_X)
+
+
+# ### Analyze
+
+# In[1104]:
+
+
+dummy_classifier = DummyClassifier(strategy='most_frequent')
+dummy_classifier.fit(gbd_cd_data_X_prepared, gbd_cd_data_y)
+
+test_set_X = test_set.drop('Income Group', axis=1)
+test_set_X_prepared = full_pipeline.transform(test_set_X)
+test_set_y = test_set['Income Group'].copy()
+
+dummy_predictions = dummy_classifier.predict(test_set_X_prepared)
+
+dummy_accuracy = accuracy_score(test_set_y, dummy_predictions)
+print(f"Dummy Classifier Accuracy: {dummy_accuracy}")
+
+
+# In[1107]:
+
+
+models = {
+    'Decision Tree': DecisionTreeClassifier(),
+    'Random Forest': RandomForestClassifier(),
+    'Gradient Boosting': GradientBoostingClassifier(),
+    'SVM': SVC(),
+    'K-Nearest Neighbors': KNeighborsClassifier()
+}
+
+for name, model in models.items():
+
+    model.fit(gbd_cd_data_X_prepared, gbd_cd_data_y)
+    
+    test_set_X = test_set.drop('Income Group', axis=1)
+    test_set_X_prepared = full_pipeline.transform(test_set_X)
+    test_set_y = test_set['Income Group'].copy()
+   
+    predictions = model.predict(test_set_X_prepared)
+    
+    accuracy = accuracy_score(test_set_y, predictions)
+    
+    print(f"{name} Accuracy: {accuracy}")
+
+
+# In[1108]:
+
+
+decision_tree = DecisionTreeClassifier()
+
+decision_tree.fit(gbd_cd_data_X_prepared, gbd_cd_data_y)
+
+test_set_X = test_set.drop('Income Group', axis=1)
+test_set_X_prepared = full_pipeline.transform(test_set_X)
+test_set_y = test_set['Income Group'].copy()
+
+predictions = decision_tree.predict(test_set_X_prepared)
+
+accuracy = accuracy_score(test_set_y, predictions)
+precision = precision_score(test_set_y, predictions, average='weighted')
+recall = recall_score(test_set_y, predictions, average='weighted')
+f1 = f1_score(test_set_y, predictions, average='weighted')
+conf_matrix = confusion_matrix(test_set_y, predictions)
+
+print(f"Accuracy: {accuracy}")
+print(f"Precision: {precision}")
+print(f"Recall: {recall}")
+print(f"F1-score: {f1}")
+print(conf_matrix)
+
+
+# All models did fantastic against the test data.
+
+# In[1114]:
+
+
+disp = ConfusionMatrixDisplay(conf_matrix, display_labels=['High income', 'Low income', 'Lower middle income', 'Upper middle income'])  # Specify your class labels
+disp.plot(cmap='Blues', colorbar=False)
+plt.xticks(rotation=90)
+plt.show()
+
+
+# I want to test it agaist some random data I am going to throw at it and see how accurate it is
+
+# In[1122]:
+
+
+test_new_data = pd.DataFrame({
+  'Entity': ['Algeria', 'France', 'Mauritania','Somalia', 'South Africa'],
+  'Code': ['DZA', 'FRA', 'MRT','SOM', 'ZAF'],
+  'Year': [2019, 2012, 2007, 1998, 2019],
+  'DALYs (Disability-Adjusted Life Years)': [6024.52, 4302.32, 29910.86, 68484.04, 23778.37],
+})
+
+actual_income_group = ['Lower middle income', 'High income', 'Lower middle income', 'Low income','Upper middle income']
+
+test_new_data_prepared = full_pipeline.transform(test_new_data)
+decision_tree.fit(gbd_cd_data_X_prepared, gbd_cd_data_y)
+new_data_predictions = decision_tree.predict(test_new_data_prepared)
+
+for entity, actual_group, prediction in zip(test_new_data['Entity'], actual_income_group, new_data_predictions):
+    print(f"{entity}: Actual Income Group - {actual_group}, Predicted Income Group - {prediction}")
+
+
+# Due to the relatively high correlation betwen a high DALYs and Income grouping which was explored in the visualization section, the machine learning models performed exceptionally well on the data. The models were extremely accurate at predicting the Income grouping based on the DALYs values given.
+# 
+# This would be relatively accurate at predicting data in the future. However, as the DALYs are becoming smaller and smaller, wer would probably have to focus on more recent data due to a decrease in DALYs due to greater health awareness and vaccinations around the globe. 
+
+# This is still an extremely important topic as it is often the lower income countries who struggle the most and are impacted the worst by communicable diseases. Fotunately we have made fantastic progress overtime as DALYs values have decreased tremendously over the past few years compared to what they were a decade ago
 
 # ## Resources and References
 # *What resources and references have you used for this project?*
@@ -1093,10 +1291,13 @@ display(gbd_cd_data_y.head())
 # - https://datatopics.worldbank.org/world-development-indicators/the-world-by-income-and-region.html
 # - https://realpython.com/pandas-merge-join-and-concat/
 # - https://pandas.pydata.org/pandas-docs/stable/index.html
+# - https://stackabuse.com/overview-of-classification-methods-in-python-with-scikit-learn/
+# - https://realpython.com/train-test-split-python-data/
+# 
 # 
 # - ChatGPT
 
-# In[904]:
+# In[1123]:
 
 
 # ⚠️ Make sure you run this cell at the end of your notebook before every submission!

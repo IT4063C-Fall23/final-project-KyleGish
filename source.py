@@ -644,6 +644,352 @@ display(measles_income_group_count.plot(kind='bar', xlabel='IncomeGroup', ylabel
 # The regular income grouping has 64% of countries listed in the High and Upper middle income. 
 # The correlated data between income grouping based off of the top 50 measel cases only has 34% of countries listed in the High and Upper middle income. 
 
+# ## Global Burden of Disease Dataset Analysis
+
+# This section is the real meat of the final project. I wanted to use some WHO datasets in order to check and see if there was an indication that lower income groups were more greatly impacted against commmunicable diseases. After taking a break, I found that there was a GBD study done in 2019 which analyzed different impacts of communicable diseases on human life and it will be the main dataset that I will be using. 
+# 
+# The income categories were able to be selected but would not designate a country associated with them. So for accurracy there are two different datasets. One that has the country data and one that has the income grouping. I will attempt to join the two with the revised_world_bank_data that I had to create my own dataset from segments of information from world banks website. 
+# 
+# I plan on using both datasets in different graphics but may be able to use them joined for more accurate information.
+
+# This data also has two different measures. Deaths is based on the amount of deaths that occured while DALYs (Disability-Adjusted Life Years) are a bit different. 
+# 
+# One DALY represents the loss of the equivalent of one year of full health. DALYs for a disease or health condition are the sum of the years of life lost to due to premature mortality (YLLs) and the years lived with a disability (YLDs) due to prevalent cases of the disease or health condition in a population.
+
+# In[874]:
+
+
+gbd_data_countries.head()
+
+
+# In[875]:
+
+
+income_grouping_data.head()
+
+
+# In[876]:
+
+
+gbd_merged_data = pd.merge(gbd_data_countries, income_grouping_data, on='location', how='left')
+
+
+# In[877]:
+
+
+gbd_merged_data.head()
+
+
+# In[878]:
+
+
+gbd_merged_data.isnull().sum()
+
+
+# In[879]:
+
+
+missing_values = gbd_merged_data[gbd_merged_data['income'].isnull()]
+print(missing_values)
+
+
+# In[880]:
+
+
+location_mappings = {
+    'Viet Nam': 'Vietnam',
+    'United Republic of Tanzania': 'Tanzania',
+    'United States Virgin Islands': 'Virgin Islands (U.S.)',
+    'Venezuela (Bolivarian Republic of)': 'Venezuela',
+    'Slovakia': 'Slovak Republic',
+    'Saint Vincent and the Grenadines': 'St. Vincent and the Grenadines',
+    'Sao Tome and Principe': 'São Tomé and Principe',
+    "Lao People's Democratic Republic": 'Lao PDR',
+    "United States of America": 'United States',
+    "Democratic People's Republic of Korea": "Korea, Dem. People's Rep",
+    "Czechia": "Czech Republic",
+    "Micronesia (Federated States of)": "Micronesia, Fed. Sts.",
+    "Congo": "Congo, Rep.",
+    "Saint Kitts and Nevis": "St. Kitts and Nevis",
+    "Taiwan (Province of China)": "Taiwan, China",
+    "Saint Lucia": "St. Lucia",
+    "Iran (Islamic Republic of)": "Iran, Islamic Rep",
+    "Yemen": "Yemen, Rep.",
+    "Bolivia (Plurinational State of)": "Bolivia",
+    "Turkey": "Türkiye",
+    "Bahamas": "Bahamas, The",
+    "Democratic Republic of the Congo": "Congo, Dem. Rep",
+    "Republic of Moldova": "Moldova",
+    
+}
+
+for wrong_loc, correct_loc in location_mappings.items():
+    gbd_data_countries.loc[gbd_data_countries['location'] == wrong_loc, 'location'] = correct_loc
+
+
+# In[881]:
+
+
+gbd_merged_data = pd.merge(gbd_data_countries, income_grouping_data, on='location', how='left')
+
+
+# In[882]:
+
+
+location_ignore = ['Tokelau', 'Cook Islands','Kyrgyzstan', 'Palestine','Niue']
+
+filter_location = gbd_merged_data[~gbd_merged_data['location'].isin(location_ignore)]
+
+missing_values = filter_location[filter_location['income'].isnull()]
+print(missing_values)
+
+
+# These five countries do not have a world bank income level associated with them, so I believe dropping those rows would be best here. 
+
+# In[883]:
+
+
+gbd_merged_data_filtered = gbd_merged_data[~gbd_merged_data['location'].isin(location_ignore)]
+
+gbd_data = gbd_merged_data.drop(gbd_merged_data[gbd_merged_data['location'].isin(location_ignore)].index)
+
+
+# In[884]:
+
+
+gbd_data.isnull().sum()
+
+
+# For sake of simplicity, I think it would be best to divide the Deaths and DALY measures into two different datasets since they are different metrics. 
+
+# In[885]:
+
+
+gbd_deaths_data = gbd_data[gbd_data['measure'] == 'Deaths'].copy()
+gbd_dalys_data = gbd_data[gbd_data['measure'] == 'DALYs (Disability-Adjusted Life Years)'].copy()
+
+
+# In[886]:
+
+
+display(gbd_data.shape)
+display(gbd_deaths_data.shape)
+display(gbd_dalys_data.shape)
+
+
+# In[887]:
+
+
+display(gbd_deaths_data.head())
+display(gbd_dalys_data.head())
+
+
+# In[888]:
+
+
+display(gbd_deaths_data.info())
+display(gbd_dalys_data.info())
+
+
+# In[889]:
+
+
+display(gbd_deaths_data.describe())
+display(gbd_dalys_data.describe())
+
+
+# The gbd_dalys_data will be utilized mostly for the machine learning section as I hopefully will be able to see the correlation between different countries, the type of communicable disease, and the income of the country. I am unsure of if I will use it for metrics later but I think being able to pick out a country, the type of disease and seeing what income level it correlates to would be cool. 
+# 
+# However, for simplicity and ensuring that I can do some geographs, I will be importing two other datasets that are very similar but include different sections of the data that I can use for this project. 
+
+# In[890]:
+
+
+correlation = gbd_dalys_data['income'].astype('category').cat.codes.corr(gbd_dalys_data['val'])
+
+print(f"Correlation between 'income' and 'val': {correlation}")
+
+
+# In[891]:
+
+
+income_mapping = {
+    'Lower Income': 1,
+    'Lower Middle Income': 2,
+    'Upper Middle Income': 3,
+    'High Income': 4
+}
+gbd_dalys_data['Income'] = gbd_dalys_data['income'].map(income_mapping)
+
+correlation = gbd_dalys_data['Income'].corr(gbd_dalys_data['val'])
+
+# Create a pivot table to visualize the correlation
+pivot_table = gbd_dalys_data.pivot_table(index='income', values='val', aggfunc='mean')
+
+plt.figure(figsize=(8, 6))
+sns.heatmap(pivot_table, annot=True, cmap='coolwarm', fmt='.2f', cbar=True)
+plt.title('Correlation between Income and DALYs')
+plt.xlabel('DAYLs')
+plt.ylabel('Income')
+plt.show()
+
+
+# With some help from chatgpt to help me create the correlation heatmap, we can see that low income and lower middle income have a pretty significant correlation with the val or DAYLs. 
+
+# The gbd_cd_data is a dataset that includes country codes and instead of the more selective communicable disease, it includes everything that the GBD has under the Communicable disease section. 
+
+# In[892]:
+
+
+gbd_cd_data.head()
+
+
+# In[893]:
+
+
+gbd_cd_data.shape
+
+
+# In[894]:
+
+
+gbd_cd_data.info()
+
+
+# In[895]:
+
+
+gbd_cd_data.isnull().sum()
+
+
+# In[896]:
+
+
+gbd_cd_data = gbd_cd_data.dropna(subset=['Code', 'Income Group'])
+
+
+# In[897]:
+
+
+gbd_cd_data.isnull().sum()
+
+
+# In[898]:
+
+
+gbd_cd_data.describe()
+
+
+# In[899]:
+
+
+fig = px.choropleth(gbd_cd_data, 
+                    locations='Code', 
+                    color='DALYs (Disability-Adjusted Life Years)', 
+                    hover_name='Entity',
+                    hover_data=['Income Group'],  
+                    color_continuous_scale='Plasma',  
+                    title='Disability-Adjusted Life Years by Country') 
+fig.update_geos(showcountries=True)  
+fig.show() 
+
+
+# I wanted to create a geo graph where you could hover over each country and see the income group it belonged in. This graph allows you to do that as well as see where communicable diseases impact the most. 
+
+# In[900]:
+
+
+total_dalys_group = gbd_cd_data.groupby('Income Group')['DALYs (Disability-Adjusted Life Years)'].sum().reset_index()
+
+total_dalys_cat = ['Low income', 'Lower middle income', 'Upper middle income', 'High income']
+
+income_group_data = total_dalys_group[total_dalys_group['Income Group'].isin(total_dalys_cat)]
+
+plt.figure(figsize=(12, 6))
+plt.bar(income_group_data['Income Group'], income_group_data['DALYs (Disability-Adjusted Life Years)'], color='cyan')
+plt.title('Total DALYs per Income Group')
+plt.xlabel('Income Group')
+plt.ylabel('Total DALYs')
+plt.xticks(rotation=-45) 
+plt.show()
+
+
+# In[901]:
+
+
+print(income_group_data)
+
+
+# This graph counts the total DALYs values in each income grouping and plots it as a bar graph. The low income and lower middle income have significantly more total DALYs attributed to them. The High income and Upper middle income only make up 23.4% of the total DALYs
+# 
+# 20,844,391.07 / 89,055,189.99 = .234   
+# 
+
+# In[902]:
+
+
+plt.figure(figsize=(8, 8))
+plt.pie(income_group_data['DALYs (Disability-Adjusted Life Years)'], labels=income_group_data['Income Group'], autopct='%1.1f%%', colors=['lavender', 'lightgreen', 'lightblue', 'lightcoral'], startangle=180)
+plt.title('Total DALYs Distribution by Income Group')
+plt.axis('equal') 
+plt.show()
+
+
+# The pie chart is a better graphical representation of just how much the Low income and Lower middle income are impacted
+
+# ### Checkpoint 2 Overview
+# 
+# I wanted to work with multiple datasets to see if I could see a patter emerge on all of them. I first looked at cholera and measles data from WHO's data portal and compared that to the income_cat dataset from world bank. 
+# 
+# I then wanted to go a little more in depth and found a GBD study done in 2019 which allowed me to get a more detailed dataset to start analyzing. I was able to combine two datasets for an extremely detailed dataset which I may try to use later on to see some correlation between different data points. However, for the main section of data, I used the gbd_communicable_diseases dataset which included the countries, country code, year, DALYs information, and the Income Group.
+# 
+# I was able to use these datasets to create visuals which allowed you to better see the breakdown of income groups.
+# 
+# 
+# #### Exploratory Data Analysis (EDA)
+# 
+# - What insights and interesting information are you able to extract at this stage? - 
+#     I have found a significant correlation between the income grouping and the impact on human health based off of a country.
+# - What are the distributions of my variables? - My variables depend on the dataset we are looking at. Most of my variables are centered around the DALY's or total deaths, the year, the country, and the income grouping they are a part of.
+# 
+# - Are there any correlations between my variables? - Yes, there is a correlation between income groping and impact on DALYs. There is also a correlation between the year and DALYs.
+# 
+# - What issues can you see in your data at this point? - I don't know if I can see any at this point in time. It is a bit chaotic but most of the NaN or missing values have been fixed. 
+# 
+# - Are there any outliers or anomalies? are they relevant to your analysis? or should they be removed? - There were a few outliers in the measles dataset that I removed but the data has been relatively solid besides that.
+# 
+# - Are there any missing values? how are you going to deal with them? - The missing values have already been removed or adjusted by checking for isnull() or using .dropna. I also replaced values that were incorrect so I could join the data properly. 
+# 
+# - Are there any duplicate values? how are you going to deal with them? - There were no duplicate values for this data.
+# 
+# - Are there any data types that need to be changed? - Maybe. I may need to change the Income Grouping categorical ordinal values later to better analyze. Similarly like I did for the correlation between income grouping and DALYs values. I also needed to change the values back into an int64 after merging.
+# 
+# #### Data Visualization
+# 
+# - You should have at least 4 visualizations in your notebook, to represent different aspects and valuable insights of your data. - I may have gone a bit overboard and have more than four visuals. I wanted to have a few for each section of data while focusing on the GBD data as the foundataion.
+# 
+# - You can use 2 visualization library that you want. - I used matplotlib, seaborn, and plotly. 
+# 
+# - You can use any type of visualization that best represents your data. - I used a geomap and bargraphs mostly to display data. 
+# 
+# 
+# #### Data Cleaning and Transformation
+# In this section, you'll clean data per your findings in the EDA section. You will be handling issues such as:
+# 
+# - Missing values - Missing values were fixed checking the dataset with isnull().sum() and dropping NaN values with dropna.
+# 
+# - Duplicate values - There weren't any duplicate values for my datasets.
+# 
+# - Anomalies and Outliers - There were a couple of outliers in my measles dataset which were dropped but the GBD dataset does not have any anomaly or significant outliers that will impact the data. 
+# 
+# - Data types transformation. - I swapped objects to int64 after a merge interaction and may need to swap the categorical values from my Income Grouping later to ordinal values such as 1,2,3,4 in place of Low income, Low middle income, Upper middle income, and High income. 
+# 
+# 
+# #### Prior Feedback and Updates
+# 
+# - Have you received any feedback? - I have not received any feedback or had peer reviews so far. 
+# - What changes have you made to your project based on this feedback? - None as of now.
+
 # ## Resources and References
 # *What resources and references have you used for this project?*
 # 📝 <!-- Answer Below -->
@@ -652,8 +998,16 @@ display(measles_income_group_count.plot(kind='bar', xlabel='IncomeGroup', ylabel
 # - https://datacatalog.worldbank.org/
 # - https://www.healthdata.org/
 # - https://ourworldindata.org/burden-of-disease
+# 
+# 
+# - https://plotly.com/python/choropleth-maps/
+# - https://datatopics.worldbank.org/world-development-indicators/the-world-by-income-and-region.html
+# - https://realpython.com/pandas-merge-join-and-concat/
+# - https://pandas.pydata.org/pandas-docs/stable/index.html
+# 
+# - ChatGPT
 
-# In[857]:
+# In[903]:
 
 
 # ⚠️ Make sure you run this cell at the end of your notebook before every submission!

@@ -175,6 +175,103 @@ income_grouping_data = pd.read_csv('Data/GBD/revised_world_bank_data.csv')
 gbd_cd_data = pd.read_csv('Data/GBD/gbd_communicable_diseases.csv')
 
 
+# ## Exploratory Data Analysis (EDA)
+
+# My goal is to breakdown how income correlates with communicable disease's impact one different countries. I first want to take a look at the income datasets to set a base to go off of.
+
+# ### Income Information
+
+# In[819]:
+
+
+display(income_cat.head(5))
+
+
+# In[820]:
+
+
+display(income_cat.shape)
+
+
+# In[821]:
+
+
+display(income_cat.info())
+
+
+# In[822]:
+
+
+display(income_cat.isnull().sum())
+
+
+# In[823]:
+
+
+display(income_cat.describe())
+
+
+# Since there are no huge outliers, duplicate values, or anomalies in the data we don't have to focus too much on cleaning the data. However, there is one missing value for the income group for income_category.csv. So I will focus on cleaning up that value.
+
+# In[824]:
+
+
+income_cat_missing = income_cat[income_cat.isnull().any(axis=1)]
+print(income_cat_missing)
+
+
+# The data comes with a note that lists the breakdown: 
+# 
+# This table classifies all World Bank member countries (189), and all other economies with populations of more than 30,000. For operational and analytical purposes, economies are divided among income groups according to 2022 gross national income (GNI) per capita, calculated using the World Bank Atlas method. The groups are: low income, $1,135 or less; lower middle income, $1,136  to $4,465; upper middle income, $4,466 to $13,845; and high income, $13,846 or more. The effective operational cutoff for IDA eligibility is $1,315 or less.
+# 
+# https://data.worldbank.org/indicator/NY.GNP.PCAP.CD?locations=VE
+# 
+# Venezuela's most recent value is listed at 13,010 putting in the upper middle income. 
+
+# In[825]:
+
+
+missing_value = income_cat_missing.index[0]
+
+income_cat.loc[missing_value, 'IncomeGroup'] = 'Upper middle income'
+
+
+# In[826]:
+
+
+income_cat.isnull().sum()
+
+
+# In[827]:
+
+
+display(income_cat.value_counts('IncomeGroup'))
+
+
+# In[828]:
+
+
+display(income_cat['IncomeGroup'].value_counts().plot(kind='bar', xlabel='IncomeGroup', ylabel='Count', rot=-45))
+
+
+# This graph includes general information of how many of each different income group there are
+
+# In[829]:
+
+
+# Loaded country boundaries - (GeoJSON file)
+country_boundries = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
+
+merged_income_cat = country_boundries.merge(income_cat, how='left', left_on='iso_a3', right_on='Code')
+
+fig, ax = plt.subplots(1, 1, figsize=(15, 10))
+merged_income_cat.plot(column='IncomeGroup', cmap='viridis', ax=ax, legend=True)
+plt.title('Income Group by Country')
+plt.show()
+
+
+# This is a geomap of the income grouping of each country. This project will explore how income impacts human life. Hopefully we will begin to see patterns emerge. Maybe countries indicated as low or lower middle income having a correlation with greater negative impact to human life. As we explore the diseases by country, we will be able to relate back to the income information throughout the project.
+
 # ## Resources and References
 # *What resources and references have you used for this project?*
 # 📝 <!-- Answer Below -->
@@ -184,7 +281,7 @@ gbd_cd_data = pd.read_csv('Data/GBD/gbd_communicable_diseases.csv')
 # - https://www.healthdata.org/
 # - https://ourworldindata.org/burden-of-disease
 
-# In[812]:
+# In[818]:
 
 
 # ⚠️ Make sure you run this cell at the end of your notebook before every submission!

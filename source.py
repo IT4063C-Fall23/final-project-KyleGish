@@ -87,6 +87,94 @@
 # 
 # - I was able to import the different datasets that I wanted to work with and was able to give a summary of my plans for the next step. 
 
+# ## Exploratory Data Analysis and Visualization
+
+# In[813]:
+
+
+import sys
+assert sys.version_info >= (3, 10)
+
+import numpy as np
+import pandas as pd
+from ydata_profiling import ProfileReport
+from scipy.stats import trim_mean
+import os
+
+
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
+
+from sklearn.preprocessing import (
+  OneHotEncoder,
+  OrdinalEncoder,
+  StandardScaler
+)
+from sklearn.impute import (
+  SimpleImputer
+)
+
+from sklearn.model_selection import (
+  StratifiedShuffleSplit,
+  train_test_split,
+  cross_val_score,
+  KFold,
+  GridSearchCV
+)
+
+from sklearn import metrics
+from sklearn.dummy import DummyClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.svm import SVC
+from sklearn.ensemble import (
+  RandomForestClassifier, 
+  GradientBoostingClassifier,
+  BaggingClassifier
+)
+
+import pickle
+
+get_ipython().run_line_magic('matplotlib', 'inline')
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import seaborn as sns
+import plotly.express as px
+import plotly.graph_objects as go
+import geopandas as gpd
+
+mpl.rc('axes', labelsize=14)
+mpl.rc('xtick', labelsize=12)
+mpl.rc('ytick', labelsize=12)
+plt.style.use("bmh")
+
+
+# In[814]:
+
+
+income_cat = pd.read_csv('Data/Income/income_category.csv')
+
+
+# In[815]:
+
+
+cholera_cases = pd.read_csv('Data/Cholera/cholera1_data.csv')
+cholera_deaths = pd.read_csv('Data/Cholera/cholera2_data.csv')
+
+
+# In[816]:
+
+
+measles_data = pd.read_csv('Data/OtherDiseases/measles_data.csv')
+
+
+# In[817]:
+
+
+gbd_data_countries = pd.read_csv('Data/GBD/gbd_countries.csv')
+income_grouping_data = pd.read_csv('Data/GBD/revised_world_bank_data.csv')
+gbd_cd_data = pd.read_csv('Data/GBD/gbd_communicable_diseases.csv')
+
+
 # ## Resources and References
 # *What resources and references have you used for this project?*
 # 📝 <!-- Answer Below -->
@@ -96,7 +184,7 @@
 # - https://www.healthdata.org/
 # - https://ourworldindata.org/burden-of-disease
 
-# In[2]:
+# In[812]:
 
 
 # ⚠️ Make sure you run this cell at the end of your notebook before every submission!

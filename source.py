@@ -510,6 +510,140 @@ display(income_group_count.plot(kind='bar', xlabel='IncomeGroup', ylabel='Count'
 # The original income group has 63.3% in the Upper middle income and High income categories.
 # The top 50 country matches between fatality rate and income_cat has only 34% in the Upper middle income and High income categories. 
 
+# ### Measeles Data
+
+# In[858]:
+
+
+measles_data.head()
+
+
+# In[859]:
+
+
+measles_data.shape
+
+
+# In[860]:
+
+
+measles_data.info()
+
+
+# In[861]:
+
+
+measles_data.isnull().sum()
+
+
+# In[862]:
+
+
+measles_data.describe()
+
+
+# In[863]:
+
+
+measles_data_mean = measles_data.iloc[:, 1:].mean(axis=1)
+
+for column in measles_data.columns[1:]:
+    measles_data[column] = measles_data[column].fillna(measles_data_mean)
+
+
+# In[864]:
+
+
+measles_data.isnull().sum()
+
+
+# In[865]:
+
+
+measles_data['Reported_Cases_Mean'] = measles_data.iloc[:, 1:].mean(axis=1)
+
+measles_data_top_mean = measles_data.nlargest(20, 'Reported_Cases_Mean')
+
+plt.figure(figsize=(12, 8))
+plt.bar(measles_data_top_mean['Countries, territories and areas'], measles_data_top_mean['Reported_Cases_Mean'])
+plt.xlabel('Countries')
+plt.ylabel('Number of Reported cases')
+plt.title('Mean of reported cases from 1974-2022')
+plt.xticks(rotation=90)
+plt.tight_layout()
+plt.show()
+
+
+# I wanted to take the mean of all reported cases and display the top 20 countries with the higest data. China ends up at the top by quite a large margin here.
+
+# In[866]:
+
+
+measles_data_top_mean = measles_data.nlargest(50, 'Reported_Cases_Mean')
+
+measles_merged_data = pd.merge(measles_data_top_mean, income_cat, left_on='Countries, territories and areas', right_on='Economy',how='left')
+
+top_countries_income_group = measles_merged_data[['Countries, territories and areas', 'IncomeGroup']]
+
+print(top_countries_income_group)
+
+
+# We have some problems with the countries, territories and areas not lining up name wise. 
+
+# In[867]:
+
+
+missing_income_group = top_countries_income_group[top_countries_income_group['IncomeGroup'].isnull()]
+print(missing_income_group)
+
+
+# In[868]:
+
+
+top_countries_income_group.loc[top_countries_income_group['Countries, territories and areas'] == 'Democratic Republic of the Congo','IncomeGroup'] = 'Low income'
+top_countries_income_group.loc[top_countries_income_group['Countries, territories and areas'] == 'United Kingdom of Great Britain and Northern Ireland','IncomeGroup'] = 'High income'
+top_countries_income_group.loc[top_countries_income_group['Countries, territories and areas'] == 'Viet Nam','IncomeGroup'] = 'Lower middle income'
+top_countries_income_group.loc[top_countries_income_group['Countries, territories and areas'] == 'United Republic of Tanzania','IncomeGroup'] = 'Lower middle income'
+top_countries_income_group.loc[top_countries_income_group['Countries, territories and areas'] == 'Turkiye','IncomeGroup'] = 'Upper middle income'
+top_countries_income_group.loc[top_countries_income_group['Countries, territories and areas'] == "Cote d'Ivoire",'IncomeGroup'] = 'Lower middle income'
+top_countries_income_group.loc[top_countries_income_group['Countries, territories and areas'] == 'Iran (Islamic Republic of)','IncomeGroup'] = 'Lower middle income'
+top_countries_income_group.loc[top_countries_income_group['Countries, territories and areas'] == 'Yemen','IncomeGroup'] = 'Low income'
+top_countries_income_group.loc[top_countries_income_group['Countries, territories and areas'] == 'Venezuela (Bolivarian Republic of)','IncomeGroup'] = 'Upper middle income'
+
+
+# Resolved the NaN errors due to different naming conventions between datasets.
+
+# In[869]:
+
+
+missing_income_group = top_countries_income_group[top_countries_income_group['IncomeGroup'].isnull()]
+print(missing_income_group)
+
+
+# In[870]:
+
+
+measles_income_group_count = top_countries_income_group['IncomeGroup'].value_counts()
+print(measles_income_group_count)
+
+
+# In[871]:
+
+
+display(income_cat['IncomeGroup'].value_counts().plot(kind='bar', xlabel='IncomeGroup', ylabel='Count', rot=-45))
+
+
+# This is the total count of income groups included in the income_cat dataset
+
+# In[872]:
+
+
+display(measles_income_group_count.plot(kind='bar', xlabel='IncomeGroup', ylabel='Count', rot=-45))
+
+
+# The regular income grouping has 64% of countries listed in the High and Upper middle income. 
+# The correlated data between income grouping based off of the top 50 measel cases only has 34% of countries listed in the High and Upper middle income. 
+
 # ## Resources and References
 # *What resources and references have you used for this project?*
 # 📝 <!-- Answer Below -->
@@ -519,7 +653,7 @@ display(income_group_count.plot(kind='bar', xlabel='IncomeGroup', ylabel='Count'
 # - https://www.healthdata.org/
 # - https://ourworldindata.org/burden-of-disease
 
-# In[830]:
+# In[857]:
 
 
 # ⚠️ Make sure you run this cell at the end of your notebook before every submission!

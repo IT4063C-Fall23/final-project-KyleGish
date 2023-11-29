@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# # Income and Wealth's Impact on Communicable Diseases📝
+# # Incomes and Impact on Communicable Diseases
 # 
 # ![Banner](./assets/graphic_banner.jpg)
 
@@ -17,9 +17,6 @@
 # 
 
 # ## Approach and Analysis
-# *What is your approach to answering your project question?*
-# *How will you use the identified data to answer your project question?*
-# 📝 <!-- Start Discussing the project here; you can add as many code cells as you need -->
 # 
 
 # This project is quite complex. I want to break down different communicable diseases and their impact on lower income countries. There are a lot of different ways to break this down so I wanted to focus on looking at the overall income of different countries and then comparing that to different disease cases, total deaths, and DALYs values to see how they impact different income communities. 
@@ -67,8 +64,6 @@ from sklearn.ensemble import (
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import ConfusionMatrixDisplay
-
-import pickle
 
 get_ipython().run_line_magic('matplotlib', 'inline')
 import matplotlib as mpl
@@ -221,13 +216,15 @@ display(income_cat['IncomeGroup'].value_counts().plot(kind='bar', xlabel='Income
 
 # This graph includes general information of how many of each different income group there are
 
-# In[24]:
+# In[150]:
 
 
-# Loaded country boundaries - (GeoJSON file)
-country_boundries = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
+country_boundaries = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
 
-merged_income_cat = country_boundries.merge(income_cat, how='left', left_on='iso_a3', right_on='Code')
+merged_income_cat = country_boundaries.merge(income_cat, how='left', left_on='iso_a3', right_on='Code')
+
+income_order = ['High income', 'Upper middle income', 'Lower middle income', 'Low income']
+merged_income_cat['IncomeGroup'] = pd.Categorical(merged_income_cat['IncomeGroup'], categories=income_order, ordered=True)
 
 fig, ax = plt.subplots(1, 1, figsize=(15, 10))
 merged_income_cat.plot(column='IncomeGroup', cmap='viridis', ax=ax, legend=True)
@@ -821,7 +818,7 @@ correlation = gbd_dalys_data['income'].astype('category').cat.codes.corr(gbd_dal
 print(f"Correlation between 'income' and 'val': {correlation}")
 
 
-# In[110]:
+# In[143]:
 
 
 income_mapping = {
@@ -840,12 +837,12 @@ pivot_table = gbd_dalys_data.pivot_table(index='income', values='val', aggfunc='
 plt.figure(figsize=(8, 6))
 sns.heatmap(pivot_table, annot=True, cmap='coolwarm', fmt='.2f', cbar=True)
 plt.title('Correlation between Income and DALYs')
-plt.xlabel('DAYLs')
+plt.xlabel('DALYs')
 plt.ylabel('Income')
 plt.show()
 
 
-# With some help from chatgpt to help me create the correlation heatmap, we can see that low income and lower middle income have a pretty significant correlation with the val or DAYLs. 
+# With some help from chatgpt to help me create the correlation heatmap, we can see that low income and lower middle income have a pretty significant correlation with the val or DALYs. 
 
 # The gbd_cd_data is a dataset that includes country codes and instead of the more selective communicable disease, it includes everything that the GBD has under the Communicable disease section. 
 
@@ -891,7 +888,7 @@ gbd_cd_data.isnull().sum()
 gbd_cd_data.describe()
 
 
-# In[118]:
+# In[152]:
 
 
 fig = px.choropleth(gbd_cd_data, 
@@ -927,7 +924,7 @@ plt.xticks(rotation=-45)
 plt.show()
 
 
-# The total amount of DAYLs from High income and Upper middle income areas are significantly less than that of lower middle income and low income. 
+# The total amount of DALYs from High income and Upper middle income areas are significantly less than that of lower middle income and low income. 
 
 # In[122]:
 
@@ -952,91 +949,7 @@ plt.show()
 
 # The pie chart is a better graphical representation of just how much the Low income and Lower middle income are impacted
 
-# ### Checkpoint 2 Overview
-# 
-# I wanted to work with multiple datasets to see if I could see a patter emerge on all of them. I first looked at cholera and measles data from WHO's data portal and compared that to the income_cat dataset from world bank. 
-# 
-# I then wanted to go a little more in depth and found a GBD study done in 2019 which allowed me to get a more detailed dataset to start analyzing. I was able to combine two datasets for an extremely detailed dataset which I may try to use later on to see some correlation between different data points. However, for the main section of data, I used the gbd_communicable_diseases dataset which included the countries, country code, year, DALYs information, and the Income Group.
-# 
-# I was able to use these datasets to create visuals which allowed you to better see the breakdown of income groups.
-# 
-# 
-# #### Exploratory Data Analysis (EDA)
-# 
-# - What insights and interesting information are you able to extract at this stage? - 
-#     I have found a significant correlation between the income grouping and the impact on human health based off of a country.
-# - What are the distributions of my variables? - My variables depend on the dataset we are looking at. Most of my variables are centered around the DALY's or total deaths, the year, the country, and the income grouping they are a part of.
-# 
-# - Are there any correlations between my variables? - Yes, there is a correlation between income groping and impact on DALYs. There is also a correlation between the year and DALYs.
-# 
-# - What issues can you see in your data at this point? - I don't know if I can see any at this point in time. It is a bit chaotic but most of the NaN or missing values have been fixed. 
-# 
-# - Are there any outliers or anomalies? are they relevant to your analysis? or should they be removed? - There were a few outliers in the measles dataset that I removed but the data has been relatively solid besides that.
-# 
-# - Are there any missing values? how are you going to deal with them? - The missing values have already been removed or adjusted by checking for isnull() or using .dropna. I also replaced values that were incorrect so I could join the data properly. 
-# 
-# - Are there any duplicate values? how are you going to deal with them? - There were no duplicate values for this data.
-# 
-# - Are there any data types that need to be changed? - Maybe. I may need to change the Income Grouping categorical ordinal values later to better analyze. Similarly like I did for the correlation between income grouping and DALYs values. I also needed to change the values back into an int64 after merging.
-# 
-# #### Data Visualization
-# 
-# - You should have at least 4 visualizations in your notebook, to represent different aspects and valuable insights of your data. - I may have gone a bit overboard and have more than four visuals. I wanted to have a few for each section of data while focusing on the GBD data as the foundataion.
-# 
-# - You can use 2 visualization library that you want. - I used matplotlib, seaborn, and plotly. 
-# 
-# - You can use any type of visualization that best represents your data. - I used a geomap and bargraphs mostly to display data. 
-# 
-# 
-# #### Data Cleaning and Transformation
-# In this section, you'll clean data per your findings in the EDA section. You will be handling issues such as:
-# 
-# - Missing values - Missing values were fixed checking the dataset with isnull().sum() and dropping NaN values with dropna.
-# 
-# - Duplicate values - There weren't any duplicate values for my datasets.
-# 
-# - Anomalies and Outliers - There were a couple of outliers in my measles dataset which were dropped but the GBD dataset does not have any anomaly or significant outliers that will impact the data. 
-# 
-# - Data types transformation. - I swapped objects to int64 after a merge interaction and may need to swap the categorical values from my Income Grouping later to ordinal values such as 1,2,3,4 in place of Low income, Low middle income, Upper middle income, and High income. 
-# 
-# 
-# #### Prior Feedback and Updates
-# 
-# - Have you received any feedback? - I have not received any feedback or had peer reviews so far. 
-# - What changes have you made to your project based on this feedback? - None as of now.
-
 # ## Machine Learning (Regression / Classification)
-
-# ### Checkpoint 3 Prep
-# 
-# 
-# #### Machine Learning Plan
-# 
-# - What type of machine learning model are you planning to use? - I am unsure. I want to test the different models and see which ones work well and which ones dont.
-#    
-# - What are the challenges have you identified/are you anticipating in building your machine learning model? - I am working on using a numerical value to predict a categorical value. I may try and swap it around but I want to look at the correlation between DAYLs and Income grouping. Because the Income groups may be uneven in the training and test set, I also should stratify the data to help insure that it doesn't pull too much from one income grouping for the data.
-# 
-# - How are you planning to address these challenges? - I will need to handle the categorical data and go from there. I don't need to overcomplicate things especially since I will be working with a relatively simple dataset. I feel that because the dataset already has a relatively high correlation between the values, it will be pretty accurate in the machine learning model to detect. 
-# 
-# 
-# #### Machine Learning Implementation Process
-# 
-# (Ask, Prepare, Process, Analyze, Evaluate, Share)
-# 
-# 
-# - I will need to ensure that the datasets that I will be working with are clean and do not have missing or outlier data. I am pretty confident from checkpoint 2 that everything looks good.
-# 
-# - I will need to split the dataset into training and test sets.
-# 
-# - I will need to clean the data using data imputation, scaling/normalization, handling of categorical data. 
-# 
-# - I then need to test that data using multiple algorithms / models to evaluate and chose. 
-# 
-# 
-# #### Prior Feedback and updates
-# 
-# - Have you received any feedback? - I have not received any feedback or had peer reviews so far. 
-# - What changes have you made to your project based on this feedback? - None as of now.
 
 # ### EDA
 
@@ -1054,18 +967,6 @@ plt.show()
 # - **Year**: Discrete Numerical data.
 # - **DALYs (Disability-Adjusted Life Years)**: Continuous Numerical data.
 # - **Income Group**: Ordinal Categorical Data (Low income, Lower middle income, Upper middle income, High income). 
-# 
-# Secondary Dataset (May use?) - gbd_countries.csv
-# 
-# - **measure**: Nominal Categorical data (DALYs (Disability-Adjusted Life Years)).
-# - **location**: Nominal Categorical data (Countries and territories).
-# - **cause**: Nominal Categorical data (Communication Diseases).
-# - **year**: Discrete Numerical data.
-# - **val**: Continuous Numerical data (Total amount DAYLs). 
-# - **upper**: Continuous Numerical data (Upper bound DAYLs).
-# - **lower**: Continuous Numerical data (Lower bound DAYLs).
-# - **income**: Ordinal Categorical Data (Low income, Lower middle income, Upper middle income, High income). 
-# 
 # 
 # The data has already been merged and cleaned. Rows with missing values have been dropped or adjusted during the merge. 
 # 
@@ -1287,8 +1188,7 @@ for entity, actual_group, prediction in zip(test_new_data['Entity'], actual_inco
 # This is still an extremely important topic as it is often the lower income countries who struggle the most and are impacted the worst by communicable diseases. Fotunately we have made fantastic progress overtime as DALYs values have decreased tremendously over the past few years compared to what they were a decade ago
 
 # ## Resources and References
-# *What resources and references have you used for this project?*
-# 📝 <!-- Answer Below -->
+# 
 
 # - https://apps.who.int/gho/data/node.main
 # - https://datacatalog.worldbank.org/
@@ -1306,7 +1206,7 @@ for entity, actual_group, prediction in zip(test_new_data['Entity'], actual_inco
 # 
 # - ChatGPT
 
-# In[1124]:
+# In[3]:
 
 
 # ⚠️ Make sure you run this cell at the end of your notebook before every submission!

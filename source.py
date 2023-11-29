@@ -3,72 +3,17 @@
 
 # # Income and Wealth's Impact on Communicable Diseases📝
 # 
-# ![Banner](./assets/banner.jpeg)
+# ![Banner](./assets/graphic_banner.jpg)
 
 # ## Topic
-# *What problem are you (or your stakeholder) trying to address?*
-# 📝 <!-- Answer Below -->
 
 # Looking at the spread of diseases is crucial to helping improve human health and well beings. Breaking down the Income and Disease numbers could help to provide some insight into how they correlate with one another. Diseases can become a very big problem very quickly. We got to see this play out during the chaos when Covid-19 was spreading around. Analyzing the impact between income and infections could hopefully draw more attention to situations like what happened with Covid-19. Addressing the spread of diseases is critical to saving lives across the globe and this problem will only continue to grow as diseases adapt and evolve overtime.
 
 # ## Project Question
-# *What specific question are you seeking to answer with this project?*
-# *This is not the same as the questions you ask to limit the scope of the project.*
-# 📝 <!-- Answer Below -->
+# 
 # 
 
-# I want to specifically focus on how significant diseases impact human health in different areas of income / around the globe. Being able to break down significant diseases and income datasets could allow for different correlations or patterns to be seen between the impact of these diseases and the income area they are associated in. Would we be able to draw potential conclusions from this data to help save lives or better address these diseases in different income areas? Focusig the data around locational data will provide me with some targeted data that I can break down to better answer the main question. 
-# 
-
-# ## What would an answer look like?
-# *What is your hypothesized answer to your question?*
-# 📝 <!-- Answer Below -->
-# 
-
-# 
-# Income does have a significant and noticeble effect on how impactful diseases are to human health. Analyzing the disease datasets as well as the income data sets allows us to see the bigger picture as we able able to correlated different different income with different disease risks. Utilizing the data vizualizations with demonstrate the correlations between income and disease impact. In order to help limit the focus, I will be prioritizing the most significant and impactful diseases.
-# 
-# 
-# ***
-# I hope to be more particular and provide clearer correlations after breaking down the data. For example, an answer could look like: 
-# 
-# Cholera has a significant impact on lower income communities. Noticeble trends between lower income areas and higher infections / deaths from cholera is noted.
-# 
-# Higher income areas report higher level of vaccinations which decrease disease impact on higher income locations. The reverse is also seen with lower income areas reporting lower level of vaccinations and higher levels of infections and deaths. 
-# 
-
-# ## Data Sources
-# *What 3 data sources have you identified for this project?*
-# *How are you going to relate these datasets?*
-# 📝 <!-- Answer Below -->
-
-# There are several different data sources I will be pulling from for this project.
-# 
-# 
-# Data Source 1: WHO Data (Wide Range of Communicable Diseases Datasets - temporary)
-# 
-#     https://apps.who.int/gho/data/node.main
-#     
-#     The CSV's for WHO disease data are located in the OtherDisease folder in the Data folder. The primary focus will be cholera with some analytics towards other Diseases as well. 
-# 
-# Data Source 2: Global Income Data
-# 
-#     https://datacatalog.worldbank.org/
-# 
-#     income_category.csv is a file that notes categorical income levels based off country
-# 
-# Data Source 3: IHME Global Burden of Disease (2019) Study
-# 
-#     https://www.healthdata.org/
-# 
-#     gbd_countries.csv is a dataset that includes country, year, type of disease, and number of deaths / DALYs
-# 
-# Data Source 4: Our World In Data
-# 
-#     https://ourworldindata.org/burden-of-disease
-# 
-#     gbd_communicable_diseases.csv is a refined dataset that includes the country, country code, year, and DALYs values
-# 
+# I want to specifically focus on how significant communicable diseases impact human health in different areas of income / around the globe. Being able to break down significant diseases and income datasets could allow for different correlations or patterns to be seen between the impact of these diseases and the income area they are associated in. Would we be able to draw potential conclusions from this data to help save lives or better address these diseases in different income areas? Focusig the data around locational data will provide me with some targeted data that I can break down to better answer the main question. 
 # 
 
 # ## Approach and Analysis
@@ -83,13 +28,9 @@
 # 
 # I plan on doing this by almost breaking down the analysis and visualizations into different sections to help draw conclusions. I want to draw meaningful conclusions so I will do my best to provide accurate and meaningful visualizations. 
 
-# ### Checkpoint 1 Overview
-# 
-# - I was able to import the different datasets that I wanted to work with and was able to give a summary of my plans for the next step. 
+# ## Imports
 
-# ## Exploratory Data Analysis and Visualization
-
-# In[1112]:
+# In[2]:
 
 
 import sys
@@ -97,8 +38,6 @@ assert sys.version_info >= (3, 10)
 
 import numpy as np
 import pandas as pd
-from ydata_profiling import ProfileReport
-from scipy.stats import trim_mean
 import os
 
 
@@ -107,7 +46,6 @@ from sklearn.compose import ColumnTransformer
 
 from sklearn.preprocessing import (
   OneHotEncoder,
-  OrdinalEncoder,
   StandardScaler
 )
 from sklearn.impute import (
@@ -115,27 +53,19 @@ from sklearn.impute import (
 )
 
 from sklearn.model_selection import (
-  StratifiedShuffleSplit,
   train_test_split,
-  cross_val_score,
-  KFold,
-  GridSearchCV
 )
 
-from sklearn import metrics
 from sklearn.dummy import DummyClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.svm import SVC
 from sklearn.ensemble import (
   RandomForestClassifier, 
   GradientBoostingClassifier,
-  BaggingClassifier
 )
-from sklearn.linear_model import LogisticRegression
+
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
-from sklearn.metrics import classification_report
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import roc_auc_score
 from sklearn.metrics import ConfusionMatrixDisplay
 
 import pickle
@@ -145,7 +75,6 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.express as px
-import plotly.graph_objects as go
 import geopandas as gpd
 
 mpl.rc('axes', labelsize=14)
@@ -154,32 +83,62 @@ mpl.rc('ytick', labelsize=12)
 plt.style.use("bmh")
 
 
-# In[814]:
+# ## Data Sources
+
+# In[10]:
 
 
-income_cat = pd.read_csv('Data/Income/income_category.csv')
-
-
-# In[815]:
-
-
+# Data Source 1
 cholera_cases = pd.read_csv('Data/Cholera/cholera1_data.csv')
 cholera_deaths = pd.read_csv('Data/Cholera/cholera2_data.csv')
-
-
-# In[816]:
-
-
 measles_data = pd.read_csv('Data/OtherDiseases/measles_data.csv')
 
 
-# In[817]:
+# Data Source 1: WHO Data (Wide Range of Communicable Diseases Datasets - temporary)
+# 
+#     https://apps.who.int/gho/data/node.main
+#     
+#     The CSV's for WHO disease data are located in the OtherDisease folder in the Data folder. The primary focus will be cholera with some analytics towards other Diseases as well. 
+
+# In[11]:
 
 
+# Data Source 2
+income_cat = pd.read_csv('Data/Income/income_category.csv')
+
+
+# Data Source 2: Global Income Data
+# 
+#     https://datacatalog.worldbank.org/
+# 
+#     income_category.csv is a file that notes categorical income levels based off country
+
+# In[12]:
+
+
+# Data Source 3
 gbd_data_countries = pd.read_csv('Data/GBD/gbd_countries.csv')
 income_grouping_data = pd.read_csv('Data/GBD/revised_world_bank_data.csv')
+
+
+# Data Source 3: IHME Global Burden of Disease (2019) Study
+# 
+#     https://www.healthdata.org/
+# 
+#     gbd_countries.csv is a dataset that includes country, year, type of disease, and number of deaths / DALYs
+
+# In[13]:
+
+
+# Data Source 4
 gbd_cd_data = pd.read_csv('Data/GBD/gbd_communicable_diseases.csv')
 
+
+# Data Source 4: Our World In Data
+# 
+#     https://ourworldindata.org/burden-of-disease
+# 
+#     gbd_communicable_diseases.csv is a refined dataset that includes the country, country code, year, and DALYs values
 
 # ## Exploratory Data Analysis (EDA) & Visualizations
 
@@ -187,31 +146,31 @@ gbd_cd_data = pd.read_csv('Data/GBD/gbd_communicable_diseases.csv')
 
 # ### Income Information
 
-# In[819]:
+# In[14]:
 
 
 display(income_cat.head(5))
 
 
-# In[820]:
+# In[15]:
 
 
 display(income_cat.shape)
 
 
-# In[821]:
+# In[16]:
 
 
 display(income_cat.info())
 
 
-# In[822]:
+# In[17]:
 
 
 display(income_cat.isnull().sum())
 
 
-# In[823]:
+# In[18]:
 
 
 display(income_cat.describe())
@@ -219,7 +178,7 @@ display(income_cat.describe())
 
 # Since there are no huge outliers, duplicate values, or anomalies in the data we don't have to focus too much on cleaning the data. However, there is one missing value for the income group for income_category.csv. So I will focus on cleaning up that value.
 
-# In[824]:
+# In[19]:
 
 
 income_cat_missing = income_cat[income_cat.isnull().any(axis=1)]
@@ -234,7 +193,7 @@ print(income_cat_missing)
 # 
 # Venezuela's most recent value is listed at 13,010 putting in the upper middle income. 
 
-# In[825]:
+# In[20]:
 
 
 missing_value = income_cat_missing.index[0]
@@ -242,19 +201,19 @@ missing_value = income_cat_missing.index[0]
 income_cat.loc[missing_value, 'IncomeGroup'] = 'Upper middle income'
 
 
-# In[826]:
+# In[21]:
 
 
 income_cat.isnull().sum()
 
 
-# In[827]:
+# In[22]:
 
 
 display(income_cat.value_counts('IncomeGroup'))
 
 
-# In[828]:
+# In[23]:
 
 
 display(income_cat['IncomeGroup'].value_counts().plot(kind='bar', xlabel='IncomeGroup', ylabel='Count', rot=-45))
@@ -262,7 +221,7 @@ display(income_cat['IncomeGroup'].value_counts().plot(kind='bar', xlabel='Income
 
 # This graph includes general information of how many of each different income group there are
 
-# In[829]:
+# In[24]:
 
 
 # Loaded country boundaries - (GeoJSON file)
@@ -282,14 +241,14 @@ plt.show()
 
 # The two cholera datasets include different values for cases, deaths, and fatality rates. Instead of having them in two different datasets, I want to combine them. 
 
-# In[831]:
+# In[25]:
 
 
 display(cholera_cases.head(5))
 display(cholera_deaths.head(5))
 
 
-# In[832]:
+# In[26]:
 
 
 cholera_data = pd.merge(cholera_cases, cholera_deaths, how='left', on=['Countries, territories and areas','Year'])
@@ -297,31 +256,31 @@ cholera_data = pd.merge(cholera_cases, cholera_deaths, how='left', on=['Countrie
 cholera_data.head()
 
 
-# In[833]:
+# In[27]:
 
 
 cholera_data.shape
 
 
-# In[834]:
+# In[28]:
 
 
 cholera_data.isnull().sum()
 
 
-# In[835]:
+# In[29]:
 
 
 cholera_data.info()
 
 
-# In[836]:
+# In[30]:
 
 
 cholera_data.describe()
 
 
-# In[837]:
+# In[31]:
 
 
 #To convert the object types to int64 after merging
@@ -329,37 +288,37 @@ cholera_data['Number of reported deaths from cholera'].replace('Unknown', np.nan
 cholera_data['Number of reported deaths from cholera'] = cholera_data['Number of reported deaths from cholera'].astype(float).astype('Int64')
 
 
-# In[838]:
+# In[32]:
 
 
 cholera_data['Cholera case fatality rate'] = cholera_data['Number of reported deaths from cholera'] / cholera_data['Number of reported cases of cholera']
 
 
-# In[839]:
+# In[33]:
 
 
 cholera_data.info()
 
 
-# In[840]:
+# In[34]:
 
 
 cholera_data.head()
 
 
-# In[841]:
+# In[35]:
 
 
 cholera_data.describe()
 
 
-# In[842]:
+# In[36]:
 
 
 cholera_data.isnull().sum()
 
 
-# In[843]:
+# In[37]:
 
 
 cholera_data_missing = cholera_data[cholera_data.isnull().any(axis=1)]
@@ -368,19 +327,19 @@ print(cholera_data_missing)
 
 # Since much of the missing data is just missing records from different years, I believe the best case would be to drop the rows that are not consistent across the data to help provide a better picture of the data. Most of the data is still available and I do not believe that dropping the rows will skew the data especially since we could look at years where all of the data is present across the graphs. 
 
-# In[844]:
+# In[38]:
 
 
 cholera_data_prepared = cholera_data.dropna()
 
 
-# In[845]:
+# In[39]:
 
 
 cholera_data_prepared.isnull().sum()
 
 
-# In[846]:
+# In[40]:
 
 
 cholera_data_aggregated = cholera_data_prepared.groupby('Countries, territories and areas').agg({'Number of reported cases of cholera': 'mean','Number of reported deaths from cholera': 'mean'}).reset_index()
@@ -400,7 +359,7 @@ plt.tight_layout()
 plt.show()
 
 
-# In[847]:
+# In[41]:
 
 
 cholera_fatality_rate = cholera_data_prepared.groupby('Countries, territories and areas')['Cholera case fatality rate'].mean().reset_index()
@@ -417,27 +376,27 @@ plt.show()
 
 # These two graphs, while a bit crowded, do provide a lot of information. We see the two big outliers in graph one with Haiti and Peru having a large number of cases of Cholera. However, we do not see that translate to fatality rate. The second graph has Italy and Oman as the two outliers but they were not outliers on the first graph. It seems some of the data is skewed which may indicate some of the rates are off.
 
-# In[848]:
+# In[42]:
 
 
 cholera_rate_outliers = cholera_data_prepared[cholera_data_prepared['Cholera case fatality rate'] > 1.0]
 print(cholera_rate_outliers)
 
 
-# In[849]:
+# In[43]:
 
 
 cholera_data_prepared.drop(index=1093, inplace=True)
 
 
-# In[850]:
+# In[44]:
 
 
 cholera_rate_outliers = cholera_data_prepared[cholera_data_prepared['Cholera case fatality rate'] > 1.0]
 print(cholera_rate_outliers)
 
 
-# In[851]:
+# In[45]:
 
 
 cholera_fatality_rate = cholera_data_prepared.groupby('Countries, territories and areas')['Cholera case fatality rate'].mean().reset_index()
@@ -454,7 +413,7 @@ plt.show()
 
 # Italy is no longer visualized on the graph
 
-# In[852]:
+# In[46]:
 
 
 cholera_rate_sort = cholera_fatality_rate.sort_values(by='Cholera case fatality rate', ascending=False)
@@ -472,7 +431,7 @@ plt.show()
 
 # I wanted to see the top countries with the highest fatality rates and then will see how they line up with the income groupings.
 
-# In[853]:
+# In[47]:
 
 
 countries_check = ['Oman', 'Bangladesh', 'Czechia', 'Myanmar', 'Cambodia', 'India', 'Mali', 'Djibouti', 'Zambia', 'Lao PDR']
@@ -482,7 +441,7 @@ for country in countries_check:
     print(country_rate_check)
 
 
-# In[854]:
+# In[48]:
 
 
 cholera_highest_fatality_rate = cholera_rate_sort.nlargest(62, 'Cholera case fatality rate')
@@ -496,7 +455,7 @@ income_group_count = filtered_countries['IncomeGroup'].value_counts()
 print(income_group_count)
 
 
-# In[855]:
+# In[49]:
 
 
 #Overall Income Categories
@@ -505,7 +464,7 @@ display(income_cat['IncomeGroup'].value_counts().plot(kind='bar', xlabel='Income
 
 # This is the total count of income groups included in the income_cat dataset
 
-# In[856]:
+# In[50]:
 
 
 display(income_group_count.plot(kind='bar', xlabel='IncomeGroup', ylabel='Count', rot=-45))
@@ -516,39 +475,62 @@ display(income_group_count.plot(kind='bar', xlabel='IncomeGroup', ylabel='Count'
 # The original income group has 63.3% in the Upper middle income and High income categories.
 # The top 50 country matches between fatality rate and income_cat has only 34% in the Upper middle income and High income categories. 
 
+# In[90]:
+
+
+sorted_income_cat = income_cat['IncomeGroup'].value_counts().sort_index()
+sorted_income_group_count = income_group_count.sort_index()
+
+combined_income_group = pd.DataFrame({
+    'Income Cat': sorted_income_cat,
+    'Income Group Count': sorted_income_group_count
+})
+
+income_group_order = ['High income', 'Upper middle income', 'Lower middle income', 'Low income']
+combined_income_group = combined_income_group.reindex(income_group_order)
+
+plt.figure(figsize=(16, 12)) 
+ax = combined_income_group.plot(kind='bar', xlabel='Income Group', ylabel='Count', rot=-45)
+plt.xlabel('Income Group')
+plt.ylabel('Count')
+plt.title('Income Group vs Top Fatality Rate Cholera Income Groups')
+ax.legend(['Income Group', 'Cholera Income Groups'])
+plt.show()
+
+
 # ### Measeles Data
 
-# In[858]:
+# In[73]:
 
 
 measles_data.head()
 
 
-# In[859]:
+# In[74]:
 
 
 measles_data.shape
 
 
-# In[860]:
+# In[75]:
 
 
 measles_data.info()
 
 
-# In[861]:
+# In[76]:
 
 
 measles_data.isnull().sum()
 
 
-# In[862]:
+# In[77]:
 
 
 measles_data.describe()
 
 
-# In[863]:
+# In[78]:
 
 
 measles_data_mean = measles_data.iloc[:, 1:].mean(axis=1)
@@ -557,13 +539,13 @@ for column in measles_data.columns[1:]:
     measles_data[column] = measles_data[column].fillna(measles_data_mean)
 
 
-# In[864]:
+# In[79]:
 
 
 measles_data.isnull().sum()
 
 
-# In[865]:
+# In[80]:
 
 
 measles_data['Reported_Cases_Mean'] = measles_data.iloc[:, 1:].mean(axis=1)
@@ -582,7 +564,7 @@ plt.show()
 
 # I wanted to take the mean of all reported cases and display the top 20 countries with the higest data. China ends up at the top by quite a large margin here.
 
-# In[866]:
+# In[81]:
 
 
 measles_data_top_mean = measles_data.nlargest(50, 'Reported_Cases_Mean')
@@ -596,14 +578,14 @@ print(top_countries_income_group)
 
 # We have some problems with the countries, territories and areas not lining up name wise. 
 
-# In[867]:
+# In[82]:
 
 
 missing_income_group = top_countries_income_group[top_countries_income_group['IncomeGroup'].isnull()]
 print(missing_income_group)
 
 
-# In[868]:
+# In[83]:
 
 
 top_countries_income_group.loc[top_countries_income_group['Countries, territories and areas'] == 'Democratic Republic of the Congo','IncomeGroup'] = 'Low income'
@@ -619,21 +601,21 @@ top_countries_income_group.loc[top_countries_income_group['Countries, territorie
 
 # Resolved the NaN errors due to different naming conventions between datasets.
 
-# In[869]:
+# In[84]:
 
 
 missing_income_group = top_countries_income_group[top_countries_income_group['IncomeGroup'].isnull()]
 print(missing_income_group)
 
 
-# In[870]:
+# In[85]:
 
 
 measles_income_group_count = top_countries_income_group['IncomeGroup'].value_counts()
 print(measles_income_group_count)
 
 
-# In[871]:
+# In[86]:
 
 
 display(income_cat['IncomeGroup'].value_counts().plot(kind='bar', xlabel='IncomeGroup', ylabel='Count', rot=-45))
@@ -641,7 +623,7 @@ display(income_cat['IncomeGroup'].value_counts().plot(kind='bar', xlabel='Income
 
 # This is the total count of income groups included in the income_cat dataset
 
-# In[872]:
+# In[87]:
 
 
 display(measles_income_group_count.plot(kind='bar', xlabel='IncomeGroup', ylabel='Count', rot=-45))
@@ -649,6 +631,29 @@ display(measles_income_group_count.plot(kind='bar', xlabel='IncomeGroup', ylabel
 
 # The regular income grouping has 64% of countries listed in the High and Upper middle income. 
 # The correlated data between income grouping based off of the top 50 measel cases only has 34% of countries listed in the High and Upper middle income. 
+
+# In[92]:
+
+
+sorted_income_cat = income_cat['IncomeGroup'].value_counts().sort_index()
+sorted_income_group_count = measles_income_group_count.sort_index()
+
+combined_income_group = pd.DataFrame({
+    'Income Cat': sorted_income_cat,
+    'Income Group Count': sorted_income_group_count
+})
+
+income_group_order = ['High income', 'Upper middle income', 'Lower middle income', 'Low income']
+combined_income_group = combined_income_group.reindex(income_group_order)
+
+plt.figure(figsize=(16, 12)) 
+ax = combined_income_group.plot(kind='bar', xlabel='Income Group', ylabel='Count', rot=-45)
+plt.xlabel('Income Group')
+plt.ylabel('Count')
+plt.title('Income Group vs Top Measles Income Groups')
+ax.legend(['Income Group', 'Measles Income Groups'])
+plt.show()
+
 
 # ## Global Burden of Disease Dataset Analysis
 
@@ -662,44 +667,44 @@ display(measles_income_group_count.plot(kind='bar', xlabel='IncomeGroup', ylabel
 # 
 # One DALY represents the loss of the equivalent of one year of full health. DALYs for a disease or health condition are the sum of the years of life lost to due to premature mortality (YLLs) and the years lived with a disability (YLDs) due to prevalent cases of the disease or health condition in a population.
 
-# In[874]:
+# In[93]:
 
 
 gbd_data_countries.head()
 
 
-# In[875]:
+# In[94]:
 
 
 income_grouping_data.head()
 
 
-# In[876]:
+# In[95]:
 
 
 gbd_merged_data = pd.merge(gbd_data_countries, income_grouping_data, on='location', how='left')
 
 
-# In[877]:
+# In[96]:
 
 
 gbd_merged_data.head()
 
 
-# In[878]:
+# In[97]:
 
 
 gbd_merged_data.isnull().sum()
 
 
-# In[879]:
+# In[98]:
 
 
 missing_values = gbd_merged_data[gbd_merged_data['income'].isnull()]
 print(missing_values)
 
 
-# In[880]:
+# In[99]:
 
 
 location_mappings = {
@@ -733,13 +738,13 @@ for wrong_loc, correct_loc in location_mappings.items():
     gbd_data_countries.loc[gbd_data_countries['location'] == wrong_loc, 'location'] = correct_loc
 
 
-# In[881]:
+# In[100]:
 
 
 gbd_merged_data = pd.merge(gbd_data_countries, income_grouping_data, on='location', how='left')
 
 
-# In[882]:
+# In[101]:
 
 
 location_ignore = ['Tokelau', 'Cook Islands','Kyrgyzstan', 'Palestine','Niue']
@@ -752,7 +757,7 @@ print(missing_values)
 
 # These five countries do not have a world bank income level associated with them, so I believe dropping those rows would be best here. 
 
-# In[883]:
+# In[102]:
 
 
 gbd_merged_data_filtered = gbd_merged_data[~gbd_merged_data['location'].isin(location_ignore)]
@@ -760,7 +765,7 @@ gbd_merged_data_filtered = gbd_merged_data[~gbd_merged_data['location'].isin(loc
 gbd_data = gbd_merged_data.drop(gbd_merged_data[gbd_merged_data['location'].isin(location_ignore)].index)
 
 
-# In[884]:
+# In[103]:
 
 
 gbd_data.isnull().sum()
@@ -768,14 +773,14 @@ gbd_data.isnull().sum()
 
 # For sake of simplicity, I think it would be best to divide the Deaths and DALY measures into two different datasets since they are different metrics. 
 
-# In[885]:
+# In[104]:
 
 
 gbd_deaths_data = gbd_data[gbd_data['measure'] == 'Deaths'].copy()
 gbd_dalys_data = gbd_data[gbd_data['measure'] == 'DALYs (Disability-Adjusted Life Years)'].copy()
 
 
-# In[886]:
+# In[105]:
 
 
 display(gbd_data.shape)
@@ -783,21 +788,21 @@ display(gbd_deaths_data.shape)
 display(gbd_dalys_data.shape)
 
 
-# In[887]:
+# In[106]:
 
 
 display(gbd_deaths_data.head())
 display(gbd_dalys_data.head())
 
 
-# In[888]:
+# In[107]:
 
 
 display(gbd_deaths_data.info())
 display(gbd_dalys_data.info())
 
 
-# In[889]:
+# In[108]:
 
 
 display(gbd_deaths_data.describe())
@@ -808,7 +813,7 @@ display(gbd_dalys_data.describe())
 # 
 # However, for simplicity and ensuring that I can do some geographs, I will be importing two other datasets that are very similar but include different sections of the data that I can use for this project. 
 
-# In[890]:
+# In[109]:
 
 
 correlation = gbd_dalys_data['income'].astype('category').cat.codes.corr(gbd_dalys_data['val'])
@@ -816,7 +821,7 @@ correlation = gbd_dalys_data['income'].astype('category').cat.codes.corr(gbd_dal
 print(f"Correlation between 'income' and 'val': {correlation}")
 
 
-# In[891]:
+# In[110]:
 
 
 income_mapping = {
@@ -844,49 +849,49 @@ plt.show()
 
 # The gbd_cd_data is a dataset that includes country codes and instead of the more selective communicable disease, it includes everything that the GBD has under the Communicable disease section. 
 
-# In[892]:
+# In[111]:
 
 
 gbd_cd_data.head()
 
 
-# In[893]:
+# In[112]:
 
 
 gbd_cd_data.shape
 
 
-# In[894]:
+# In[113]:
 
 
 gbd_cd_data.info()
 
 
-# In[895]:
+# In[114]:
 
 
 gbd_cd_data.isnull().sum()
 
 
-# In[896]:
+# In[115]:
 
 
 gbd_cd_data = gbd_cd_data.dropna(subset=['Code', 'Income Group'])
 
 
-# In[897]:
+# In[116]:
 
 
 gbd_cd_data.isnull().sum()
 
 
-# In[898]:
+# In[117]:
 
 
 gbd_cd_data.describe()
 
 
-# In[899]:
+# In[118]:
 
 
 fig = px.choropleth(gbd_cd_data, 
@@ -902,14 +907,16 @@ fig.show()
 
 # I wanted to create a geo graph where you could hover over each country and see the income group it belonged in. This graph allows you to do that as well as see where communicable diseases impact the most. 
 
-# In[900]:
+# In[121]:
 
+
+income_group_order = ['High income', 'Upper middle income', 'Lower middle income', 'Low income']
 
 total_dalys_group = gbd_cd_data.groupby('Income Group')['DALYs (Disability-Adjusted Life Years)'].sum().reset_index()
 
-total_dalys_cat = ['Low income', 'Lower middle income', 'Upper middle income', 'High income']
-
-income_group_data = total_dalys_group[total_dalys_group['Income Group'].isin(total_dalys_cat)]
+income_group_data = total_dalys_group[total_dalys_group['Income Group'].isin(income_group_order)]
+income_group_data['Income Group'] = pd.Categorical(income_group_data['Income Group'], categories=income_group_order, ordered=True)
+income_group_data = income_group_data.sort_values('Income Group')
 
 plt.figure(figsize=(12, 6))
 plt.bar(income_group_data['Income Group'], income_group_data['DALYs (Disability-Adjusted Life Years)'], color='cyan')
@@ -920,7 +927,9 @@ plt.xticks(rotation=-45)
 plt.show()
 
 
-# In[901]:
+# The total amount of DAYLs from High income and Upper middle income areas are significantly less than that of lower middle income and low income. 
+
+# In[122]:
 
 
 print(income_group_data)
@@ -931,7 +940,7 @@ print(income_group_data)
 # 20,844,391.07 / 89,055,189.99 = .234   
 # 
 
-# In[902]:
+# In[123]:
 
 
 plt.figure(figsize=(8, 8))
@@ -1064,25 +1073,25 @@ plt.show()
 
 # ### Prepare
 
-# In[990]:
+# In[124]:
 
 
 gbd_cd_data = pd.read_csv('Data/GBD/gbd_communicable_diseases.csv')
 
 
-# In[991]:
+# In[125]:
 
 
 gbd_cd_data.head()
 
 
-# In[992]:
+# In[126]:
 
 
 gbd_cd_data.info()
 
 
-# In[993]:
+# In[127]:
 
 
 gbd_cd_data.isnull().sum()
@@ -1090,25 +1099,25 @@ gbd_cd_data.isnull().sum()
 
 # I dropped the NaN values previously where there was no area code for particular countries using 
 
-# In[994]:
+# In[128]:
 
 
 gbd_cd_data = gbd_cd_data.dropna(subset=['Code', 'Income Group'])
 
 
-# In[995]:
+# In[129]:
 
 
 gbd_cd_data.isnull().sum()
 
 
-# In[996]:
+# In[130]:
 
 
 display(gbd_cd_data.value_counts('Income Group'))
 
 
-# In[997]:
+# In[131]:
 
 
 display(gbd_cd_data['Income Group'].value_counts().plot(kind='bar', xlabel='Category', ylabel='Count', rot=90))
@@ -1118,20 +1127,20 @@ display(gbd_cd_data['Income Group'].value_counts().plot(kind='bar', xlabel='Cate
 
 # ### Prepare
 
-# In[1094]:
+# In[132]:
 
 
 train_set, test_set = train_test_split(gbd_cd_data, test_size=0.2, random_state=50, stratify=gbd_cd_data['Income Group'])
 
 
-# In[1095]:
+# In[133]:
 
 
 gbd_cd_data_X = train_set.drop('Income Group', axis=1)
 gbd_cd_data_y = train_set['Income Group'].copy()
 
 
-# In[1096]:
+# In[134]:
 
 
 display(gbd_cd_data_X.head())
@@ -1140,7 +1149,7 @@ display(gbd_cd_data_y.head())
 
 # ### Process
 
-# In[1102]:
+# In[135]:
 
 
 num_features = ['Year','DALYs (Disability-Adjusted Life Years)']
@@ -1162,7 +1171,7 @@ full_pipeline = ColumnTransformer([
 ])
 
 
-# In[1103]:
+# In[136]:
 
 
 gbd_cd_data_X_prepared = full_pipeline.fit_transform(gbd_cd_data_X)
@@ -1170,7 +1179,7 @@ gbd_cd_data_X_prepared = full_pipeline.fit_transform(gbd_cd_data_X)
 
 # ### Analyze
 
-# In[1104]:
+# In[137]:
 
 
 dummy_classifier = DummyClassifier(strategy='most_frequent')
@@ -1186,7 +1195,7 @@ dummy_accuracy = accuracy_score(test_set_y, dummy_predictions)
 print(f"Dummy Classifier Accuracy: {dummy_accuracy}")
 
 
-# In[1107]:
+# In[138]:
 
 
 models = {
@@ -1212,7 +1221,7 @@ for name, model in models.items():
     print(f"{name} Accuracy: {accuracy}")
 
 
-# In[1108]:
+# In[139]:
 
 
 decision_tree = DecisionTreeClassifier()
@@ -1240,7 +1249,7 @@ print(conf_matrix)
 
 # All models did fantastic against the test data.
 
-# In[1114]:
+# In[140]:
 
 
 disp = ConfusionMatrixDisplay(conf_matrix, display_labels=['High income', 'Low income', 'Lower middle income', 'Upper middle income'])  # Specify your class labels
@@ -1251,7 +1260,7 @@ plt.show()
 
 # I want to test it agaist some random data I am going to throw at it and see how accurate it is
 
-# In[1122]:
+# In[141]:
 
 
 test_new_data = pd.DataFrame({
@@ -1297,7 +1306,7 @@ for entity, actual_group, prediction in zip(test_new_data['Entity'], actual_inco
 # 
 # - ChatGPT
 
-# In[1123]:
+# In[1124]:
 
 
 # ⚠️ Make sure you run this cell at the end of your notebook before every submission!
